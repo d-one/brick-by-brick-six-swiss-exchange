@@ -2,54 +2,26 @@
 # MAGIC %md
 # MAGIC # Read a table from Unity Catalog
 # MAGIC Namespace
-# MAGIC * Catalog = user_catalog
-# MAGIC * Schema = default
+# MAGIC * Catalog = six_swiss_exchange_catalog
+# MAGIC * Schema = deltademo
 # MAGIC * Table = churn_modelling
 
 # COMMAND ----------
 
-user_email = spark.sql('select current_user() as user').collect()[0]['user']
-catalog_name = user_email.split('@')[0].replace(".", "_").replace("-", "_")
+df = spark.table("six_swiss_exchange_catalog.deltademo.churn_modelling")
 
-# COMMAND ----------
-
-# create user catalog if not exists
-spark.sql(f"CREATE CATALOG IF NOT EXISTS {catalog_name}")
-
-# use the user catalog
-spark.sql(f"USE CATALOG {catalog_name}")
-
-# COMMAND ----------
-
-# clone data from workshop catalog to your user catalog
-workshop_catalog = "opap_catalog"
-spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog_name}.default.churn_modelling SHALLOW CLONE {workshop_catalog}.default.churn_modelling")
-
-# COMMAND ----------
-
-df = spark.table(f"{catalog_name}.default.churn_modelling")
 display(df)
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC Using SQL
-# MAGIC
-# MAGIC IMPORTANT: you have to pass the catalog name, as f-strings don't work with sql queries
-
-# COMMAND ----------
-
-# your catalog name
-catalog_name
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- you have to pass the catalog name, as f-strings don't work with sql queries
-# MAGIC -- add it without the string ('') markers
 # MAGIC
-# MAGIC -- SELECT * FROM user_catalog.default.churn_modelling
-# MAGIC SELECT * FROM panagiotis_goumenakis.default.churn_modelling
+# MAGIC SELECT * FROM six_swiss_exchange_catalog.deltademo.churn_modelling
 
 # COMMAND ----------
 
@@ -58,8 +30,8 @@ catalog_name
 
 # COMMAND ----------
 
-df = spark.sql(f"SELECT * FROM {catalog_name}.default.churn_modelling")
-df.display()
+catalog = "six_swiss_exchange_catalog"
+df = spark.sql(f"SELECT * FROM {catalog}.deltademo.churn_modelling")
 
 # COMMAND ----------
 
@@ -69,20 +41,18 @@ df.display()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- you have to pass the catalog name, as f-strings don't work with sql queries
-# MAGIC -- add it without the string ('') markers
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW temptable_sql_churn_modelling
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW temptable_sql 
 # MAGIC AS
-# MAGIC SELECT * FROM panagiotis_goumenakis.default.churn_modelling
+# MAGIC SELECT * FROM six_swiss_exchange_catalog.deltademo.churn_modelling
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT * FROM temptable_sql_churn_modelling
+# MAGIC SELECT * FROM temptable_sql
 
 # COMMAND ----------
 
-df = spark.table("temptable_sql_churn_modelling")
+df = spark.table("temptable_sql")
 display(df)
 
 # COMMAND ----------
@@ -92,15 +62,9 @@ display(df)
 
 # COMMAND ----------
 
-df = spark.table(f"{catalog_name}.default.churn_modelling")
-df.createOrReplaceTempView("temptable_python_churn_modelling")
-display(spark.table("temptable_sql_churn_modelling"))
+df = spark.table("six_swiss_exchange_catalog.deltademo.churn_modelling")
+df.createOrReplaceTempView("temptable_python")
 
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC Show all created views
 
 # COMMAND ----------
 
@@ -111,42 +75,60 @@ display(spark.table("temptable_sql_churn_modelling"))
 
 # MAGIC %md
 # MAGIC # Delta table history
+# MAGIC
+# MAGIC Here we will write to one of our own tables to inspect the history.
+# MAGIC
+# MAGIC Make sure you change the `table namepsace` before running the command
 
 # COMMAND ----------
 
+# Lets creata a catalog and a Schema for you inside your own catalog
+catalog_name = "<firstname_lastname>" # usr_<firstname>_<lastname>
+schema_name = "deltademo"
 
-import pyspark.sql.functions as f
+if not catalog_name:
+    dbutils.notebook.exit("Please create/provide a name for your catalog following this naming convention:<firstname>_<lastname>")
 
-df = spark.table(f"{catalog_name}.default.churn_modelling")
-df.write.format("delta").mode("append").saveAsTable(f"{catalog_name}.default.churn_modelling") # append new rows to existing dataframe
-
-# add a new column and append
-(
-    df
-    .withColumn("Balance_2", f.col("Balance"))
-    .write
-    .format("delta")
-    .mode("append")
-    .option("mergeSchema", "true") # option to merge schemas for new columns
-    .saveAsTable(f"{catalog_name}.default.churn_modelling")
+spark.sql(
+    f"""
+    CREATE CATALOG IF NOT EXISTS {catalog_name}
+    """
 )
 
 
-# COMMAND ----------
-
-spark.sql(f"DESCRIBE HISTORY {catalog_name}.default.churn_modelling").display()
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema_name}")
 
 # COMMAND ----------
 
-df_v0 = spark.table(f"{catalog_name}.default.churn_modelling@v0")
-print(df_v0.count(), len(df_v0.columns))
 
-df_v1 = spark.table(f"{catalog_name}.default.churn_modelling@v1")
-print(df_v1.count(), len(df_v1.columns))
+df = spark.table(f"six_swiss_exchange_catalog.deltademo.churn_modelling")
 
-df_v2 = spark.table(f"{catalog_name}.default.churn_modelling@v2")
-print(df_v2.count(), len(df_v2.columns))
+df.write.format("delta").mode("append").saveAsTable(f"{catalog_name}.{schema_name}.churn_modelling")
 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT * FROM robert_yousif.deltademo.churn_modelling
+
+# COMMAND ----------
+
+
+history = spark.sql(f"DESCRIBE HISTORY {catalog_name}.deltademo.churn_modelling")
+display(history)
+
+# COMMAND ----------
+
+# Lets write a second time to the table
+df.write.format("delta").mode("append").saveAsTable(f"{catalog_name}.{schema_name}.churn_modelling")
+
+# COMMAND ----------
+
+df_v1 = spark.table(f"{catalog_name}.{schema_name}.churn_modelling@v0")
+print(df_v1.count())
+
+df_v2 = spark.table(f"{catalog_name}.{schema_name}.churn_modelling@v1")
+print(df_v2.count())
 
 # COMMAND ----------
 
@@ -156,7 +138,7 @@ print(df_v2.count(), len(df_v2.columns))
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT count(*) FROM panagiotis_goumenakis.default.churn_modelling VERSION AS OF 0
+# MAGIC SELECT count(*) FROM robert_yousif.deltademo.churn_modelling VERSION AS OF 2
 
 # COMMAND ----------
 

@@ -21,7 +21,7 @@ catalog_name = user_email.split('@')[0].replace(".", "_").replace("-", "_")
 
 # COMMAND ----------
 
-path = f"file:/Workspace/Repos/{user_email}/brick-by-brick/data/churn_modelling.csv"
+path = f"file:/Workspace/Users/{user_email}/brick-by-brick-six-swiss-exchange/data/churn_modelling.csv"
 
 dbutils.fs.ls(path)
 
