@@ -2,49 +2,51 @@
 Repository for the D ONE databricks brick-by-brick workshop
 
 # Content
-1. Setup Workspace
+0. Setup Workspace
     * Adding the repository
     * Create a personal cluster
 
-2. Delta + Unity Catalog
+1. Delta + Unity Catalog
    * Read and Write Tables
    * Upload data to Unity Catalog
    * Time Travel + Installing Libraries
 
-3. Medallion Architecture & Workflow Orchestration
+2. Medallion Architecture & Workflow Orchestration
    * 3 Notebooks - Medallion architecture 
    * Creating a Workflow Job
 
+3. ML and MLOps
 
-# 1. Setup Workspace
-Login to the [workspace](https://adb-1451829595406012.12.azuredatabricks.net/?o=1451829595406012#).
+
+# 0. Setup Workspace
+Login to the [workspace](https://adb-1353574989447196.16.azuredatabricks.net/?o=1353574989447196).
 
 ## Adding the repository
 Adding the repository to your workspace: 
 1. Click on `Workspace` in the navigation menu to the left.
-2. Click on the directory `Repos` and then on the directory with your email address (If it does not exist, create a new directory named like your email address).
-3. Click on `Add Repo` and paste this [URL](https://github.com/d-one/brick-by-brick) into `Git repository` 
-4. Click on `Create Repo` 
+2. Click on the directory `Home`.
+3. Click on `Create` and choose `Git folder` and paste this [URL](https://github.com/d-one/brick-by-brick-six-swiss-exchange.git) into `Git repository` 
+4. Click on `Create Git folder` 
 
 Now you should see a repository named `brick-by-brick` under your own directory.
 
 ## Create a personal cluster to your workspace.
 1. Click on the `Compute` tab in the navigation menu to the left.
-2. Click on Create compute and choose the following settings:
-3. Choose the `bricks-compute-policy` Policy
+2. Click on `Create compute` and choose the following settings:
+3. Choose the `Personal Copmute` Policy
 3. Make sure the `Single user access` is under your user
-4. Click on `Create Cluster`
+4. Click on `Create Compute`
 
-# 2. 3 Notebooks - the medallion architecture
+# 1. Three Notebooks - the medallion architecture
 Go to the following notebooks and follow the instructions:
 1. `Bronze`. 
 2. `Silver` 
 3. `Gold`
 
-# 3. Creating a Workflow Job
+# 2. Creating a Workflow Job
 1. Click on the `Workflows` tab in the navigation menu to the left.
 2. Click on the `Create job` button.
-3. Add a Job name for your Workflow at the top: `bricks-<user_number>`.
+3. Add a Job name for your Workflow at the top: `bricks-<firstname_lastname>`.
 3. Choose the following settings
    * **Task Name**: `bronze_task`
    * **Source**: `Workspace`
@@ -60,7 +62,7 @@ Go to the following notebooks and follow the instructions:
 Congratulations, you have now created a workflow Job.
 
 
-# 4. ML and MLOps
+# 3. ML and MLOps
 
 1. Run the ML Preprocessing notebook in your catalog to create the feature table.
 2. Move on to the ML MLflow Tracking notebook and walk through the steps to understand how to interact with MLflow experiments inside the Databricks workspace.
