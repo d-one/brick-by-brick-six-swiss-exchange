@@ -31,7 +31,7 @@ import re
 # user parameters
 user_email = spark.sql('select current_user() as user').collect()[0]['user']
 catalog_name = user_email.split('@')[0].replace(".", "_").replace("-", "_")
-workshop_catalog_name = "opap_catalog"
+
 
 # COMMAND ----------
 
@@ -46,7 +46,7 @@ spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema_name}")
 
 # if bronze table not available, clone it from workshop catalog
 if table_name not in spark.sql(f"SHOW TABLES IN {catalog_name}.{schema_name}").toPandas()['tableName'].tolist():
-    spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog_name}.{schema_name}.{table_name} SHALLOW CLONE {workshop_catalog_name}.{schema_name}.{table_name}") 
+    spark.sql(f"CREATE TABLE IF NOT EXISTS {catalog_name}.{schema_name}.{table_name} SHALLOW CLONE six_swiss_exchange_catalog.deltademo.churn_modelling") 
 
 sdf_raw = spark.read.table(f"{catalog_name}.{schema_name}.{table_name}")
 
